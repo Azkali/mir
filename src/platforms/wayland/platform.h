@@ -19,6 +19,7 @@
 
 #include "mir/graphics/platform.h"
 #include "mir/graphics/display.h"
+#include "mir/graphics/display_configuration_policy.h"
 
 #include <wayland-client.h>
 #include <wayland-egl.h>

@@ -82,10 +82,10 @@ mgw::Platform::Platform(
 }
 
 mir::UniqueModulePtr<mg::Display> mgw::Platform::create_display(
-    std::shared_ptr<DisplayConfigurationPolicy> const&,
+    std::shared_ptr<DisplayConfigurationPolicy> const& initial_conf_policy,
     std::shared_ptr<GLConfig> const& gl_config)
 {
-    return mir::make_module_ptr<mgw::Display>(wl_display, provider, gl_config, report, app_id, title);
+    return mir::make_module_ptr<mgw::Display>(wl_display, provider, gl_config, report, initial_conf_policy, app_id, title);
 }
 
 auto mgw::Platform::maybe_create_provider(const DisplayProvider::Tag& type_tag) -> std::shared_ptr<DisplayProvider>

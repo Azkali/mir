@@ -22,6 +22,7 @@
 
 #include <mir/fatal.h>
 #include <mir/graphics/display_configuration.h>
+#include <mir/graphics/display_configuration_policy.h>
 #include <mir/graphics/egl_error.h>
 #include <mir/log.h>
 #include <mir/renderer/gl/context.h>
@@ -96,6 +97,7 @@ mgw::Display::Display(
     std::shared_ptr<WlDisplayProvider> provider,
     std::shared_ptr<GLConfig> const&,
     std::shared_ptr<DisplayReport> const& report,
+    std::shared_ptr<DisplayConfigurationPolicy> const& initial_conf_policy,
     std::optional<std::string> const& app_id,
     std::optional<std::string> const& title) :
     DisplayClient{wl_display, std::move(provider), app_id, title},
@@ -111,6 +113,20 @@ mgw::Display::Display(
     {
         std::lock_guard lock{the_display_mtx};
         the_display = this;
+
+        auto conf = configuration();
+        initial_conf_policy->apply_to(*conf);
+
+        DisplayClient::for_each_output(
+            [&](DisplayConfigurationOutput &output) {
+                conf->for_each_output(
+                    [&](UserDisplayConfigurationOutput &newconf) {
+                        if (output.id == newconf.id) {
+                            output.scale = newconf.scale;
+                            output.form_factor = newconf.form_factor;
+                        }
+                    });
+            });
     }
 }
 
