@@ -19,6 +19,7 @@
 #include "basic_idle_handler.h"
 #include "decoration/basic_decoration.h"
 #include "decoration/basic_manager.h"
+#include "decoration/null_manager.h"
 #include "default_persistent_surface_store.h"
 #include "graphics_display_layout.h"
 
@@ -72,24 +73,28 @@ auto mir::DefaultServerConfiguration::the_decoration_manager() -> std::shared_pt
     return decoration_manager(
         [this]()->std::shared_ptr<msd::Manager>
         {
-            return std::make_shared<msd::BasicManager>(
-                msd::DecorationStrategy::default_decoration_strategy(),
-                *the_display_configuration_observer_registrar(),
-                [buffer_allocator = the_buffer_allocator(),
-                 executor = the_main_loop(),
-                 cursor_images = the_cursor_images()](
-                    std::shared_ptr<msd::DecorationStrategy> const& decoration_strategy,
-                    std::shared_ptr<shell::Shell> const& shell,
-                    std::shared_ptr<scene::Surface> const& surface) -> std::unique_ptr<msd::Decoration>
-                {
-                    return std::make_unique<msd::BasicDecoration>(
-                        shell,
-                        buffer_allocator,
-                        executor,
-                        cursor_images,
-                        surface,
-                        decoration_strategy);
-                });
+            bool const decor = getenv("MIR_DECOR");
+            if (!decor)
+                return std::make_shared<msd::NullManager>();
+            else
+                return std::make_shared<msd::BasicManager>(
+                    msd::DecorationStrategy::default_decoration_strategy(),
+                    *the_display_configuration_observer_registrar(),
+                    [buffer_allocator = the_buffer_allocator(),
+                     executor = the_main_loop(),
+                     cursor_images = the_cursor_images()](
+                        std::shared_ptr<msd::DecorationStrategy> const& decoration_strategy,
+                        std::shared_ptr<shell::Shell> const& shell,
+                        std::shared_ptr<scene::Surface> const& surface) -> std::unique_ptr<msd::Decoration>
+                    {
+                        return std::make_unique<msd::BasicDecoration>(
+                            shell,
+                            buffer_allocator,
+                            executor,
+                            cursor_images,
+                            surface,
+                            decoration_strategy);
+                    });
         });
 }
 
